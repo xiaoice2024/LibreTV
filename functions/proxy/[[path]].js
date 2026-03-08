@@ -187,8 +187,14 @@ export async function onRequest(context) {
             // 直接请求目标 URL
             logDebug(`开始直接请求: ${targetUrl}`);
             // Cloudflare Functions 的 fetch 默认支持重定向
-            const response = await fetch(targetUrl, { headers, redirect: 'follow' });
-
+           const response = await fetch(targetUrl, {
+  headers: {
+    "Referer": "https://movie.douban.com/",
+    "User-Agent": "Mozilla/5.0",
+    "Accept": "*/*"
+  },
+  redirect: "follow"
+});
             if (!response.ok) {
                  const errorBody = await response.text().catch(() => '');
                  logDebug(`请求失败: ${response.status} ${response.statusText} - ${targetUrl}`);
