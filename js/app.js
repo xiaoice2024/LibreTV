@@ -724,11 +724,13 @@ async function search() {
                     <div class="flex h-full">
                         ${hasCover ? `
                         <div class="relative flex-shrink-0 search-card-img-container">
-                            <img src="${item.vod_pic.startsWith('http') ? PROXY_URL + encodeURIComponent(item.vod_pic) : item.vod_pic}" 
-     alt="${safeName}"
-     class="h-full w-full object-cover transition-transform hover:scale-110"
-     onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=无封面'; this.classList.add('object-contain');"
-     loading="lazy">
+                            <img src="${item.vod_pic.startsWith('http') 
+                                ? PROXY_URL + encodeURIComponent(item.vod_pic) 
+                                : item.vod_pic}"
+                                alt="${safeName}"
+                                class="h-full w-full object-cover transition-transform hover:scale-110"
+                                onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=无封面';"
+                                loading="lazy">
                             <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
                         </div>` : ''}
                         
