@@ -1,3 +1,27 @@
+// API 源配置
+const API_SITES = {
+    heimuer: {
+        api: 'https://heimuer.tv/api.php/provide/vod/',
+        name: '黑木耳资源',
+        detail: 'https://heimuer.tv/api.php/provide/vod/'
+    },
+    // 如果有其他现有源，请在此处保留它们
+    dytt: {
+        api: 'http://caiji.dyttzyapi.com',
+        name: '电影天堂资源',
+        detail: 'http://caiji.dyttzyapi.com'
+    },
+    ruyi: {
+        api: 'https://cj.rycjapi.com',
+        name: '如意资源',
+        detail: 'https://cj.rycjapi.com'
+    },
+    bfzy: {
+        api: 'https://bfzyapi.com',
+        name: '暴风资源',
+        detail: 'https://bfzyapi.com'
+    }
+};
 // 改进的API请求处理函数
 async function handleApiRequest(url) {
     const customApi = url.searchParams.get('customApi') || '';
