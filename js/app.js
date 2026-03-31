@@ -730,6 +730,20 @@ async function search() {
 
         // 添加XSS保护，使用textContent和属性转义
         const safeResults = allResults.map(item => {
+            function fixImg(url) {
+    if (!url) return '';
+    url = url.replace('http://', 'https://');
+    if (
+        url.includes('ryzypics') ||
+        url.includes('qiqi') ||
+        url.includes('maccms') ||
+        url.includes('vod')
+    ) {
+        return 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
+    }
+
+    return url;
+}
             const safeId = item.vod_id ? item.vod_id.toString().replace(/[^\w-]/g, '') : '';
             const safeName = (item.vod_name || '').toString()
                 .replace(/</g, '&lt;')
@@ -752,7 +766,7 @@ async function search() {
                     <div class="flex h-full">
                         ${hasCover ? `
                         <div class="relative flex-shrink-0 search-card-img-container">
-                            <img src="${item.vod_pic}" alt="${safeName}" 
+                            <img src="${fixImg(item.vod_pic)}" alt="${safeName}"
                                  class="h-full w-full object-cover transition-transform hover:scale-110" 
                                  onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=无封面'; this.classList.add('object-contain');" 
                                  loading="lazy">
