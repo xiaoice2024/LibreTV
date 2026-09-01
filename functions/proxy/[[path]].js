@@ -246,52 +246,42 @@ export async function onRequest(context) {
         return `/proxy/${encodeURIComponent(targetUrl)}`;
     }
 
-    // 获取远程内容及其类
+       // 获取远程内容及其类型
     async function fetchContentWithType(targetUrl) {
+        const targetOrigin = new URL(targetUrl).origin;
+        // 豆瓣图片服务器（doubanio.com）强制校验 Referer 必须是豆瓣域名，
+        // 不能使用当前站点自身的 Referer，否则会被拒绝返回 401
         const isDouban = /doubanio\.com$/i.test(new URL(targetUrl).hostname);
 
-        // 豆瓣图片走 images.weserv.nl 中转，避开 CF 出口IP被豆瓣封锁的问题
-        let fetchUrl = targetUrl;
-        let headers;
-
-        if (isDouban) {
-            const strippedUrl = targetUrl.replace(/^https?:\/\//, ''); // weserv 要求不带协议头
-            fetchUrl = `https://images.weserv.nl/?url=${encodeURIComponent(strippedUrl)}`;
-            headers = new Headers({
-                'User-Agent': getRandomUserAgent(),
-                'Accept': '*/*'
-            });
-        } else {
-            headers = new Headers({
-                'User-Agent': getRandomUserAgent(),
-                'Accept': '*/*',
-                'Accept-Language': request.headers.get('Accept-Language') || 'zh-CN,zh;q=0.9,en;q=0.8',
-                'Referer': request.headers.get('Referer') || new URL(targetUrl).origin
-            });
-        }
+        const headers = new Headers({
+            'User-Agent': getRandomUserAgent(),
+            'Accept': '*/*',
+            'Accept-Language': request.headers.get('Accept-Language') || 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Referer': isDouban ? 'https://movie.douban.com/' : (request.headers.get('Referer') || targetOrigin)
+        });
 
         try {
             // 直接请求目标 URL
-            logDebug(`开始直接请求: ${fetchUrl}`);
+            logDebug(`开始直接请求: ${targetUrl}`);
             // Cloudflare Functions 的 fetch 默认支持重定向
-            const response = await fetch(fetchUrl, { headers, redirect: 'follow' });
+            const response = await fetch(targetUrl, { headers, redirect: 'follow' });
 
             if (!response.ok) {
                  const errorBody = await response.text().catch(() => '');
-                 logDebug(`请求失败: ${response.status} ${response.statusText} - ${fetchUrl}`);
-                 throw new Error(`HTTP error ${response.status}: ${response.statusText}. URL: ${fetchUrl}. Body: ${errorBody.substring(0, 150)}`);
+                 logDebug(`请求失败: ${response.status} ${response.statusText} - ${targetUrl}`);
+                 throw new Error(`HTTP error ${response.status}: ${response.statusText}. URL: ${targetUrl}. Body: ${errorBody.substring(0, 150)}`);
             }
 
             // 读取响应内容为文本
             const content = await response.text();
             const contentType = response.headers.get('Content-Type') || '';
-            logDebug(`请求成功: ${fetchUrl}, Content-Type: ${contentType}, 内容长度: ${content.length}`);
+            logDebug(`请求成功: ${targetUrl}, Content-Type: ${contentType}, 内容长度: ${content.length}`);
             return { content, contentType, responseHeaders: response.headers }; // 同时返回原始响应头
 
         } catch (error) {
-             logDebug(`请求彻底失败: ${fetchUrl}: ${error.message}`);
+             logDebug(`请求彻底失败: ${targetUrl}: ${error.message}`);
             // 抛出更详细的错误
-            throw new Error(`请求目标URL失败 ${fetchUrl}: ${error.message}`);
+            throw new Error(`请求目标URL失败 ${targetUrl}: ${error.message}`);
         }
     }
        
